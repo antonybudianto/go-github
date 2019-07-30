@@ -33,6 +33,7 @@ type ProfilePayload struct {
 	ForkCount       int            `json:"fork_count"`
 	WatcherCount    int            `json:"watcher_count"`
 	SubscriberCount int            `json:"subscriber_count"`
+	LanguageCount   int            `json:"language_count"`
 	LanguageMap     map[string]int `json:"language_map"`
 }
 
@@ -110,6 +111,7 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 		ForkCount:       forkCount,
 		WatcherCount:    watcherCount,
 		SubscriberCount: subscriberCount,
+		LanguageCount:   len(langMap),
 		LanguageMap:     langMap,
 	}
 
