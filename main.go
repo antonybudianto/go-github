@@ -22,16 +22,39 @@ type RepoPayload struct {
 	NetworkCount    int    `json:"network_count"`
 	FullName        string `json:"full_name"`
 	Description     string `json:"description"`
+	Language        string `json:"language"`
 }
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
-	Username        string `json:"username"`
-	StarCount       int    `json:"star_count"`
-	RepoCount       int    `json:"repo_count"`
-	ForkCount       int    `json:"fork_count"`
-	WatcherCount    int    `json:"watcher_count"`
-	SubscriberCount int    `json:"subscriber_count"`
+	Username        string         `json:"username"`
+	StarCount       int            `json:"star_count"`
+	RepoCount       int            `json:"repo_count"`
+	ForkCount       int            `json:"fork_count"`
+	WatcherCount    int            `json:"watcher_count"`
+	SubscriberCount int            `json:"subscriber_count"`
+	LanguageMap     map[string]int `json:"language_map"`
+}
+
+func fetchRepo(w http.ResponseWriter, r *http.Request, username string, page int) ([]RepoPayload, error) {
+	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var data []RepoPayload
+	err = json.NewDecoder(resp.Body).Decode(&data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
@@ -45,48 +68,35 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	forkCount := 0
 	watcherCount := 0
 	subscriberCount := 0
+	langMap := make(map[string]int)
 
 	for {
-		url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)
-
-		resp, err := http.Get(url)
-
+		repos, err := fetchRepo(w, r, username, page)
 		if err != nil {
+			fmt.Println("ERR", err.Error())
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Println(err)
 			payload := ResponsePayload{
-				Error: "Bad request: Error request",
+				Error: "Error fetch repo",
 			}
 			b, _ := json.Marshal(payload)
 			w.Write(b)
 			return
 		}
+		repoCount += len(repos)
 
-		defer resp.Body.Close()
-
-		var data []RepoPayload
-		err = json.NewDecoder(resp.Body).Decode(&data)
-		repoCount += len(data)
-
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Println("ERR2", err)
-			payload := ResponsePayload{
-				Error: "Bad request: Error decoding",
+		for i := 0; i < len(repos); i++ {
+			starCount += repos[i].StarCount
+			forkCount += repos[i].ForkCount
+			watcherCount += repos[i].WatcherCount
+			subscriberCount += repos[i].SubscriberCount
+			if repos[i].Language != "" {
+				langMap[repos[i].Language]++
+			} else {
+				langMap["Others"]++
 			}
-			b, _ := json.Marshal(payload)
-			w.Write(b)
-			return
 		}
 
-		for i := 0; i < len(data); i++ {
-			starCount += data[i].StarCount
-			forkCount += data[i].ForkCount
-			watcherCount += data[i].WatcherCount
-			subscriberCount += data[i].SubscriberCount
-		}
-
-		if len(data) == 0 {
+		if len(repos) == 0 {
 			break
 		} else {
 			page++
@@ -100,6 +110,7 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 		ForkCount:       forkCount,
 		WatcherCount:    watcherCount,
 		SubscriberCount: subscriberCount,
+		LanguageMap:     langMap,
 	}
 
 	payload := ResponsePayload{
