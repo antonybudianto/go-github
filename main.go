@@ -26,10 +26,9 @@ type RepoPayload struct {
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
-	Username  string        `json:"username"`
-	Star      int           `json:"starcount"`
-	RepoCount int           `json:"repocount"`
-	Repos     []interface{} `json:"repos"`
+	Username  string `json:"username"`
+	StarCount int    `json:"starcount"`
+	RepoCount int    `json:"repocount"`
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
@@ -37,49 +36,58 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	urlPath = strings.TrimPrefix(urlPath, "/")
 	urlSeg := strings.SplitN(urlPath, "/", 3)
 	username := urlSeg[1]
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=1&per_page=100", username)
-	fmt.Println(username)
-
-	resp, err := http.Get(url)
-
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println(err)
-		payload := ResponsePayload{
-			Error: "Bad request: Error request",
-		}
-		b, _ := json.Marshal(payload)
-		w.Write(b)
-		return
-	}
-
-	defer resp.Body.Close()
-
-	var data []RepoPayload
-	err = json.NewDecoder(resp.Body).Decode(&data)
-
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Println("ERR2", err)
-		payload := ResponsePayload{
-			Error: "Bad request: Error decoding",
-		}
-		b, _ := json.Marshal(payload)
-		w.Write(b)
-		return
-	}
-
+	page := 1
 	starCount := 0
+	repoCount := 0
 
-	for i := 0; i < len(data); i++ {
-		starCount += data[i].StarCount
+	for {
+		url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)
+
+		resp, err := http.Get(url)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Println(err)
+			payload := ResponsePayload{
+				Error: "Bad request: Error request",
+			}
+			b, _ := json.Marshal(payload)
+			w.Write(b)
+			return
+		}
+
+		defer resp.Body.Close()
+
+		var data []RepoPayload
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		repoCount += len(data)
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Println("ERR2", err)
+			payload := ResponsePayload{
+				Error: "Bad request: Error decoding",
+			}
+			b, _ := json.Marshal(payload)
+			w.Write(b)
+			return
+		}
+
+		for i := 0; i < len(data); i++ {
+			starCount += data[i].StarCount
+		}
+
+		if len(data) == 0 {
+			break
+		} else {
+			page++
+		}
 	}
 
 	profilePayload := ProfilePayload{
 		Username:  username,
-		Star:      starCount,
-		RepoCount: len(data),
-		Repos:     []interface{}{data},
+		StarCount: starCount,
+		RepoCount: repoCount,
 	}
 	payload := ResponsePayload{
 		Data: profilePayload,
