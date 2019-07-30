@@ -26,9 +26,12 @@ type RepoPayload struct {
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
-	Username  string `json:"username"`
-	StarCount int    `json:"starcount"`
-	RepoCount int    `json:"repocount"`
+	Username        string `json:"username"`
+	StarCount       int    `json:"star_count"`
+	RepoCount       int    `json:"repo_count"`
+	ForkCount       int    `json:"fork_count"`
+	WatcherCount    int    `json:"watcher_count"`
+	SubscriberCount int    `json:"subscriber_count"`
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +42,9 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	page := 1
 	starCount := 0
 	repoCount := 0
+	forkCount := 0
+	watcherCount := 0
+	subscriberCount := 0
 
 	for {
 		url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)
@@ -75,6 +81,9 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 
 		for i := 0; i < len(data); i++ {
 			starCount += data[i].StarCount
+			forkCount += data[i].ForkCount
+			watcherCount += data[i].WatcherCount
+			subscriberCount += data[i].SubscriberCount
 		}
 
 		if len(data) == 0 {
@@ -85,10 +94,14 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profilePayload := ProfilePayload{
-		Username:  username,
-		StarCount: starCount,
-		RepoCount: repoCount,
+		Username:        username,
+		StarCount:       starCount,
+		RepoCount:       repoCount,
+		ForkCount:       forkCount,
+		WatcherCount:    watcherCount,
+		SubscriberCount: subscriberCount,
 	}
+
 	payload := ResponsePayload{
 		Data: profilePayload,
 	}
