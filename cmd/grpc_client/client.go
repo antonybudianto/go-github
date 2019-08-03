@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"time"
 
 	pb "gogithub/protos"
 
@@ -31,8 +30,9 @@ func main() {
 	if len(os.Args) > 1 {
 		name = os.Args[1]
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	// defer cancel()
+	ctx := context.Background()
 	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
@@ -43,5 +43,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not fetch: %v", err)
 	}
-	log.Printf("Github: %s", r2.Username)
+	log.Printf("Github: %s (%d stars)", r2.Username, r2.Starcount)
 }

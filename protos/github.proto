@@ -12,4 +12,5 @@ message GithubRequest {
 
 message GithubResponse {
   string username = 1;
+  int32 starcount = 2;
 }

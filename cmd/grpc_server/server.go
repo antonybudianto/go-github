@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 
+	"gogithub/github"
 	pb "gogithub/protos"
 
 	"google.golang.org/grpc"
@@ -16,11 +17,6 @@ const (
 
 type helloworldserver struct{}
 type githubserver struct{}
-
-func (s *githubserver) FetchByUsername(ctx context.Context, in *pb.GithubRequest) (*pb.GithubResponse, error) {
-	log.Printf("[GithubServer] Received Username: %v", in.Username)
-	return &pb.GithubResponse{Username: in.Username}, nil
-}
 
 func (s *helloworldserver) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
 	log.Printf("[HelloWorld] Received: %v", in.Name)
@@ -34,7 +30,7 @@ func main() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterHelloWorldServer(s, &helloworldserver{})
-	pb.RegisterGithubServiceServer(s, &githubserver{})
+	pb.RegisterGithubServiceServer(s, &github.GrpcServer{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
