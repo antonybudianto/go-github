@@ -14,12 +14,16 @@ const (
 	port = ":50051"
 )
 
-// server is used to implement helloworld.GreeterServer.
-type server struct{}
+type helloworldserver struct{}
+type githubserver struct{}
 
-// SayHello implements helloworld.GreeterServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.Name)
+func (s *githubserver) FetchByUsername(ctx context.Context, in *pb.GithubRequest) (*pb.GithubResponse, error) {
+	log.Printf("[GithubServer] Received Username: %v", in.Username)
+	return &pb.GithubResponse{Username: in.Username}, nil
+}
+
+func (s *helloworldserver) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+	log.Printf("[HelloWorld] Received: %v", in.Name)
 	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
@@ -29,7 +33,8 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterHelloWorldServer(s, &server{})
+	pb.RegisterHelloWorldServer(s, &helloworldserver{})
+	pb.RegisterGithubServiceServer(s, &githubserver{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

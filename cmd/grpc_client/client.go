@@ -24,6 +24,7 @@ func main() {
 	}
 	defer conn.Close()
 	c := pb.NewHelloWorldClient(conn)
+	cgithub := pb.NewGithubServiceClient(conn)
 
 	// Contact the server and print out its response.
 	name := defaultName
@@ -37,4 +38,10 @@ func main() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("Greeting: %s", r.Message)
+
+	r2, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: name})
+	if err != nil {
+		log.Fatalf("could not fetch: %v", err)
+	}
+	log.Printf("Github: %s", r2.Username)
 }
