@@ -18,7 +18,8 @@ type RepoPayload struct {
 	Language        string `json:"language"`
 }
 
-type GithubData struct {
+// RepoData = generated summary from raw data
+type RepoData struct {
 	StarCount       int
 	RepoCount       int
 	ForkCount       int
@@ -50,7 +51,7 @@ func FetchRepo(username string, page int) ([]RepoPayload, error) {
 }
 
 // FetchAllRepos = fetch all repos by username
-func FetchAllRepos(username string) (*GithubData, error) {
+func FetchAllRepos(username string) (*RepoData, error) {
 	page := 1
 	starCount := 0
 	repoCount := 0
@@ -79,7 +80,7 @@ func FetchAllRepos(username string) (*GithubData, error) {
 		}
 
 		if len(repos) == 0 {
-			return &GithubData{
+			return &RepoData{
 				StarCount:       starCount,
 				RepoCount:       repoCount,
 				ForkCount:       forkCount,
