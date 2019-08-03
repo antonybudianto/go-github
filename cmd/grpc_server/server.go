@@ -16,7 +16,6 @@ const (
 )
 
 type helloworldserver struct{}
-type githubserver struct{}
 
 func (s *helloworldserver) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
 	log.Printf("[HelloWorld] Received: %v", in.Name)

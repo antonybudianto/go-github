@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 
@@ -22,7 +23,7 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewHelloWorldClient(conn)
+	chello := pb.NewHelloWorldClient(conn)
 	cgithub := pb.NewGithubServiceClient(conn)
 
 	// Contact the server and print out its response.
@@ -33,15 +34,23 @@ func main() {
 	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	// defer cancel()
 	ctx := context.Background()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
+	resHello, err := chello.SayHello(ctx, &pb.HelloRequest{Name: name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("Greeting: %s", r.Message)
+	log.Printf("Greeting: %s", resHello.Message)
 
-	r2, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: name})
+	resGithub, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: name})
 	if err != nil {
 		log.Fatalf("could not fetch: %v", err)
 	}
-	log.Printf("Github: %s (%d stars)", r2.Username, r2.Starcount)
+	log.Printf("Github: %s (%d stars, %d repos, %d forks, %d watchers, %d subscribers)\n",
+		resGithub.Username,
+		resGithub.Starcount,
+		resGithub.Repocount,
+		resGithub.Forkcount,
+		resGithub.Watchercount,
+		resGithub.Subscribercount)
+	b, _ := json.MarshalIndent(resGithub.Langmap, "", "  ")
+	log.Printf("LangMap: %s", string(b))
 }

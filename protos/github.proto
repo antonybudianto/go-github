@@ -13,4 +13,9 @@ message GithubRequest {
 message GithubResponse {
   string username = 1;
   int32 starcount = 2;
+  int32 repocount = 3;
+  int32 forkcount = 4;
+  int32 watchercount = 5;
+  int32 subscribercount = 6;
+  map<string, int32> langmap = 7;
 }
