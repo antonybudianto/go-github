@@ -24,7 +24,7 @@ type GithubData struct {
 	ForkCount       int
 	WatcherCount    int
 	SubscriberCount int
-	LanguageMap     map[string]int
+	LanguageMap     map[string]int32
 }
 
 // FetchRepo = fetch repo by username
@@ -57,7 +57,7 @@ func FetchAllRepos(username string) (*GithubData, error) {
 	forkCount := 0
 	watcherCount := 0
 	subscriberCount := 0
-	langMap := make(map[string]int)
+	langMap := make(map[string]int32)
 
 	for {
 		repos, err := FetchRepo(username, page)
