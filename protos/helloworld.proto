@@ -3,7 +3,7 @@ syntax = "proto3";
 package helloworld;
 
 // The greeting service definition.
-service Greeter {
+service HelloWorld {
   // Sends a greeting
   rpc SayHello (HelloRequest) returns (HelloReply) {}
 }

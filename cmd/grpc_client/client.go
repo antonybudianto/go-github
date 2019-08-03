@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
+	pb "gogithub/protos"
+
 	"google.golang.org/grpc"
-	pb "google.golang.org/grpc/examples/helloworld/helloworld"
 )
 
 const (
@@ -22,7 +23,7 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	c := pb.NewHelloWorldClient(conn)
 
 	// Contact the server and print out its response.
 	name := defaultName
