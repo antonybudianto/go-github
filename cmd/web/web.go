@@ -11,14 +11,14 @@ import (
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
-	Username        string         `json:"username"`
-	StarCount       int            `json:"star_count"`
-	RepoCount       int            `json:"repo_count"`
-	ForkCount       int            `json:"fork_count"`
-	WatcherCount    int            `json:"watcher_count"`
-	SubscriberCount int            `json:"subscriber_count"`
-	LanguageCount   int            `json:"language_count"`
-	LanguageMap     map[string]int `json:"language_map"`
+	Username        string           `json:"username"`
+	StarCount       int              `json:"star_count"`
+	RepoCount       int              `json:"repo_count"`
+	ForkCount       int              `json:"fork_count"`
+	WatcherCount    int              `json:"watcher_count"`
+	SubscriberCount int              `json:"subscriber_count"`
+	LanguageCount   int              `json:"language_count"`
+	LanguageMap     map[string]int32 `json:"language_map"`
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
