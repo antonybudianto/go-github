@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	address     = "localhost:50051"
-	defaultName = "world"
+	address = "localhost:50051"
 )
 
 func main() {
@@ -23,28 +22,24 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	chello := pb.NewHelloWorldClient(conn)
 	cgithub := pb.NewGithubServiceClient(conn)
 
 	// Contact the server and print out its response.
-	name := defaultName
+	var name string
 	if len(os.Args) > 1 {
 		name = os.Args[1]
+	} else {
+		log.Fatalf("Please provide username as argument")
 	}
 	// ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	// defer cancel()
 	ctx := context.Background()
-	resHello, err := chello.SayHello(ctx, &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-	log.Printf("Greeting: %s", resHello.Message)
 
 	resGithub, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: name})
 	if err != nil {
 		log.Fatalf("could not fetch: %v", err)
 	}
-	log.Printf("Github: %s (%d stars, %d repos, %d forks, %d watchers, %d subscribers)\n",
+	log.Printf("[GithubGrpcClient]: %s (%d stars, %d repos, %d forks, %d watchers, %d subscribers)\n",
 		resGithub.Username,
 		resGithub.Starcount,
 		resGithub.Repocount,
