@@ -34,6 +34,11 @@
    go run cmd/cli/cli.go <your-username>
    ```
 
+## Build (for GCP Debian)
+
+```sh
+$ env GOOS=linux GOARCH=amd64 go build -o bin/web cmd/web/web.go
+```
 
 # License
 MIT
