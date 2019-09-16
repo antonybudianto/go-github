@@ -87,8 +87,8 @@ func handleTopUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/profile/", handleGithubProfile)
-	http.HandleFunc("/top-users/", handleTopUsers)
+	http.HandleFunc("/gh/profile/", handleGithubProfile)
+	http.HandleFunc("/gh/top-users/", handleTopUsers)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}

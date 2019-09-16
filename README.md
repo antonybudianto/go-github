@@ -6,7 +6,7 @@
    ```sh
    go run cmd/web/web.go
    ```
-2. Open browser: http://localhost:8080/profile/antonybudianto
+2. Open browser: http://localhost:8080/gh/profile/antonybudianto
 
 ## GRPC mode
 1. Run
