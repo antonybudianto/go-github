@@ -28,6 +28,42 @@ type RepoData struct {
 	LanguageMap     map[string]int32
 }
 
+// UserPayload = response payload from github user search
+type UserPayload struct {
+	TotalCount        int        `json:"total_count"`
+	IncompleteResults bool       `json:"incomplete_results"`
+	Items             []UserItem `json:"items"`
+}
+
+// UserItem = user on userpayload
+type UserItem struct {
+	Login     string `json:"login"`
+	ID        int    `json:"id"`
+	AvatarURL string `json:"avatar_url"`
+}
+
+// FetchTopUsers = fetch top user by our own custom criteria
+func FetchTopUsers(location string, follower string, language string) (*UserPayload, error) {
+	url := fmt.Sprintf("https://api.github.com/search/users?q=location:%s+followers:%s+language:%s+type:user", location, follower, language)
+
+	resp, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var data UserPayload
+	err = json.NewDecoder(resp.Body).Decode(&data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
 // FetchRepo = fetch repo by username
 func FetchRepo(username string, page int) ([]RepoPayload, error) {
 	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)

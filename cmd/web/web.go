@@ -61,8 +61,34 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func handleTopUsers(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	language := q.Get("language")
+	location := q.Get("location")
+	follower := q.Get("follower")
+	data, err := github.FetchTopUsers(location, follower, language)
+	if err != nil {
+		fmt.Println("ERR", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		payload := model.ResponsePayload{
+			Error: "Error fetch user",
+		}
+		b, _ := json.Marshal(payload)
+		w.Write(b)
+		return
+	}
+	payload := model.ResponsePayload{
+		Data: data,
+	}
+
+	b, _ := json.Marshal(payload)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
+}
+
 func main() {
 	http.HandleFunc("/profile/", handleGithubProfile)
+	http.HandleFunc("/top-users/", handleTopUsers)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
