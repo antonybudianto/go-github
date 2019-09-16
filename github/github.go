@@ -40,6 +40,7 @@ type UserItem struct {
 	Login     string `json:"login"`
 	ID        int    `json:"id"`
 	AvatarURL string `json:"avatar_url"`
+	Stars     int    `json:"stars"`
 }
 
 // FetchTopUsers = fetch top user by our own custom criteria
@@ -56,6 +57,16 @@ func FetchTopUsers(location string, follower string, language string) (*UserPayl
 
 	var data UserPayload
 	err = json.NewDecoder(resp.Body).Decode(&data)
+	for i := 0; i < len(data.Items); i++ {
+		var stars int
+		repoData, err := FetchAllRepos(data.Items[i].Login)
+		if err != nil {
+			stars = 0
+		} else {
+			stars = repoData.StarCount
+		}
+		data.Items[i].Stars = stars
+	}
 
 	if err != nil {
 		return nil, err
