@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 // RepoPayload = response payload from github
@@ -43,9 +44,15 @@ type UserItem struct {
 	Stars     int    `json:"stars"`
 }
 
+func genClientQuery() string {
+	clientID := os.Getenv("GH_CLIENT_ID")
+	clientSecret := os.Getenv("GH_CLIENT_SECRET")
+	return fmt.Sprintf("client_id=%s&client_secret=%s", clientID, clientSecret)
+}
+
 // FetchTopUsers = fetch top user by our own custom criteria
 func FetchTopUsers(location string, follower string, language string) (*UserPayload, error) {
-	url := fmt.Sprintf("https://api.github.com/search/users?q=location:%s+followers:%s+language:%s+type:user", location, follower, language)
+	url := fmt.Sprintf("https://api.github.com/search/users?q=location:%s+followers:%s+language:%s+type:user&"+genClientQuery(), location, follower, language)
 
 	resp, err := http.Get(url)
 
@@ -77,7 +84,7 @@ func FetchTopUsers(location string, follower string, language string) (*UserPayl
 
 // FetchRepo = fetch repo by username
 func FetchRepo(username string, page int) ([]RepoPayload, error) {
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100", username, page)
+	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100&"+genClientQuery(), username, page)
 
 	resp, err := http.Get(url)
 
