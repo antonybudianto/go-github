@@ -25,7 +25,7 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	urlPath := r.URL.Path
 	urlPath = strings.TrimPrefix(urlPath, "/")
 	urlSeg := strings.SplitN(urlPath, "/", 3)
-	username := urlSeg[1]
+	username := urlSeg[2]
 
 	data, err := github.FetchAllRepos(username)
 
