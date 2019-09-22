@@ -9,14 +9,20 @@ import (
 
 // RepoPayload = response payload from github
 type RepoPayload struct {
-	StarCount       int    `json:"stargazers_count"`
-	ForkCount       int    `json:"forks_count"`
-	WatcherCount    int    `json:"watchers_count"`
-	SubscriberCount int    `json:"subscribers_count"`
-	NetworkCount    int    `json:"network_count"`
-	FullName        string `json:"full_name"`
-	Description     string `json:"description"`
-	Language        string `json:"language"`
+	StarCount       int       `json:"stargazers_count"`
+	ForkCount       int       `json:"forks_count"`
+	WatcherCount    int       `json:"watchers_count"`
+	SubscriberCount int       `json:"subscribers_count"`
+	NetworkCount    int       `json:"network_count"`
+	FullName        string    `json:"full_name"`
+	Description     string    `json:"description"`
+	Language        string    `json:"language"`
+	Owner           RepoOwner `json:"owner"`
+}
+
+// RepoOwner = owner of the repo
+type RepoOwner struct {
+	AvatarURL string `json:"avatar_url"`
 }
 
 // RepoData = generated summary from raw data
@@ -27,6 +33,7 @@ type RepoData struct {
 	WatcherCount    int
 	SubscriberCount int
 	LanguageMap     map[string]int32
+	AvatarURL       string
 }
 
 // UserPayload = response payload from github user search
@@ -113,6 +120,7 @@ func FetchAllRepos(username string) (*RepoData, error) {
 	watcherCount := 0
 	subscriberCount := 0
 	langMap := make(map[string]int32)
+	avatarUrl := ""
 
 	for {
 		repos, err := FetchRepo(username, page)
@@ -122,6 +130,9 @@ func FetchAllRepos(username string) (*RepoData, error) {
 		repoCount += len(repos)
 
 		for i := 0; i < len(repos); i++ {
+			if i == 0 {
+				avatarUrl = repos[i].Owner.AvatarURL
+			}
 			starCount += repos[i].StarCount
 			forkCount += repos[i].ForkCount
 			watcherCount += repos[i].WatcherCount
@@ -135,6 +146,7 @@ func FetchAllRepos(username string) (*RepoData, error) {
 
 		if len(repos) == 0 {
 			return &RepoData{
+				AvatarURL:       avatarUrl,
 				StarCount:       starCount,
 				RepoCount:       repoCount,
 				ForkCount:       forkCount,

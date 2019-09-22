@@ -19,6 +19,7 @@ type ProfilePayload struct {
 	SubscriberCount int              `json:"subscriber_count"`
 	LanguageCount   int              `json:"language_count"`
 	LanguageMap     map[string]int32 `json:"language_map"`
+	AvatarURL       string           `json:"avatar_url"`
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +43,7 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 
 	profilePayload := ProfilePayload{
 		Username:        username,
+		AvatarURL:       data.AvatarURL,
 		StarCount:       data.StarCount,
 		RepoCount:       data.RepoCount,
 		ForkCount:       data.ForkCount,
