@@ -88,9 +88,27 @@ func handleTopUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
+	data, err := github.FetchTopUserSummary()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		payload := model.ResponsePayload{
+			Error: "Error fetch summary",
+		}
+		b, _ := json.Marshal(payload)
+		w.Write(b)
+		return
+	}
+	b, _ := json.Marshal(data)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
+}
+
 func main() {
+	http.HandleFunc("/gh/summary", handleGithubSummary)
 	http.HandleFunc("/gh/profile/", handleGithubProfile)
-	http.HandleFunc("/gh/top-users/", handleTopUsers)
+	// http.HandleFunc("/gh/top-users/", handleTopUsers)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}

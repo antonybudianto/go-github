@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -55,6 +56,179 @@ func genClientQuery() string {
 	clientID := os.Getenv("GH_CLIENT_ID")
 	clientSecret := os.Getenv("GH_CLIENT_SECRET")
 	return fmt.Sprintf("client_id=%s&client_secret=%s", clientID, clientSecret)
+}
+
+// FetchTopUserSummary = fetch all top user using GQL
+func FetchTopUserSummary() (map[string]interface{}, error) {
+	url := "https://api.github.com/graphql"
+	query := `
+	query topSummary {
+		topAllDev: search(query: "location:Indonesia language:* followers:>=200", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		topJsDev: search(query: "location:Indonesia language:JavaScript followers:>=200", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topJavaDev: search(query: "location:Indonesia language:Java followers:>=200", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topPythonDev: search(query: "location:Indonesia language:Python followers:>=150", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topGoDev: search(query: "location:Indonesia language:Go followers:>=100", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+	  
+		topJakartaDev: search(query: "location:Jakarta followers:>=300", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topBandungDev: search(query: "location:Bandung followers:>=200", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topYogyakartaDev: search(query: "location:Yogyakarta followers:>=100", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+		
+		topMalangDev: search(query: "location:Malang followers:>=100", type: USER, first: 10) {
+		  edges {
+			node {
+			  ... on User {
+				name
+				avatarUrl
+				login
+				followers {
+					totalCount
+				}
+			  }
+			}
+		  }
+		}
+	  }
+	`
+	variables := ""
+
+	body, err := json.Marshal(map[string]string{
+		"query":     query,
+		"variables": variables,
+	})
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+
+	token := os.Getenv("GH_ACCESS_TOKEN")
+
+	req.Header.Set("Authorization", "bearer "+token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var data map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 // FetchTopUsers = fetch top user by our own custom criteria
