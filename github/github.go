@@ -210,6 +210,7 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
 
 	token := os.Getenv("GH_ACCESS_TOKEN")
+	fmt.Println("TOKEN: " + token)
 
 	req.Header.Set("Authorization", "bearer "+token)
 	client := &http.Client{}
