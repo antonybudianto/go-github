@@ -70,8 +70,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -84,8 +90,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -99,8 +111,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -114,8 +132,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -129,8 +153,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -144,8 +174,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -159,8 +195,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -174,8 +216,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
@@ -189,8 +237,14 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 				name
 				avatarUrl
 				login
+				bio
+				company
+				location
+				following {
+				  totalCount
+				}
 				followers {
-					totalCount
+				  totalCount
 				}
 			  }
 			}
