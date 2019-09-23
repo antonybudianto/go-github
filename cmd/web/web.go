@@ -7,7 +7,13 @@ import (
 	"gogithub/model"
 	"net/http"
 	"strings"
+	"time"
 )
+
+var cacheSummary []byte
+var lastCache time.Time
+
+const cacheHours = 24
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
@@ -89,9 +95,16 @@ func handleTopUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
+	hoursElapsed := time.Since(lastCache).Hours()
+	if hoursElapsed < cacheHours && len(cacheSummary) != 0 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Gogithub-Cache", "true")
+		w.Write(cacheSummary)
+		return
+	}
 	data, err := github.FetchTopUserSummary()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("ERR", err)
 		w.WriteHeader(http.StatusBadRequest)
 		payload := model.ResponsePayload{
 			Error: "Error fetch summary",
@@ -101,6 +114,8 @@ func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	b, _ := json.Marshal(data)
+	cacheSummary = b
+	lastCache = time.Now()
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(b)
 }
