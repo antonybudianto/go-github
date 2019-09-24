@@ -63,7 +63,7 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 	url := "https://api.github.com/graphql"
 	query := `
 	query topSummary {
-		topAllDev: search(query: "location:Indonesia language:* followers:>=200", type: USER, first: 10) {
+		topPHPDev: search(query: "location:Indonesia language:PHP followers:>=200", type: USER, first: 10) {
 		  edges {
 			node {
 			  ... on User {
@@ -250,6 +250,28 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 			}
 		  }
 		}
+
+		topSurabayaDev: search(query: "location:Surabaya followers:>=100", type: USER, first: 10) {
+		  edges {
+			node {
+			... on User {
+				name
+				avatarUrl
+				login
+				bio
+				company
+				location
+				following {
+				totalCount
+				}
+				followers {
+				totalCount
+				}
+			  }
+			}
+		  }
+		}
+
 	  }
 	`
 	variables := ""
