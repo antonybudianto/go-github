@@ -69,31 +69,6 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func handleTopUsers(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	language := q.Get("language")
-	location := q.Get("location")
-	follower := q.Get("follower")
-	data, err := github.FetchTopUsers(location, follower, language)
-	if err != nil {
-		fmt.Println("ERR", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		payload := model.ResponsePayload{
-			Error: "Error fetch user",
-		}
-		b, _ := json.Marshal(payload)
-		w.Write(b)
-		return
-	}
-	payload := model.ResponsePayload{
-		Data: data,
-	}
-
-	b, _ := json.Marshal(payload)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
-
 func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
 	hoursElapsed := time.Since(lastCache).Hours()
 	if hoursElapsed < cacheHours && len(cacheSummary) != 0 {
@@ -120,10 +95,16 @@ func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+func handleCoba(w http.ResponseWriter, r *http.Request) {
+	data, _ := github.FetchRepo("antonybudianto", nil)
+	b, _ := json.Marshal(data)
+	w.Write(b)
+}
+
 func main() {
 	http.HandleFunc("/gh/summary", handleGithubSummary)
 	http.HandleFunc("/gh/profile/", handleGithubProfile)
-	// http.HandleFunc("/gh/top-users/", handleTopUsers)
+	http.HandleFunc("/gh/coba", handleCoba)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}

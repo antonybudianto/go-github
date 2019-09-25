@@ -3,10 +3,11 @@ package github
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 )
+
+const ghGqlURL = "https://api.github.com/graphql"
 
 // RepoPayload = response payload from github
 type RepoPayload struct {
@@ -37,30 +38,70 @@ type RepoData struct {
 	AvatarURL       string
 }
 
-// UserPayload = response payload from github user search
-type UserPayload struct {
-	TotalCount        int        `json:"total_count"`
-	IncompleteResults bool       `json:"incomplete_results"`
-	Items             []UserItem `json:"items"`
+type UserRepositoryEdge struct {
+	Node struct {
+		Name            string `json:"name"`
+		ForkCount       int    `json:"forkCount"`
+		PrimaryLanguage struct {
+			Name string `json:"name"`
+		} `json:"primaryLanguage"`
+		Stargazers struct {
+			TotalCount int `json:"totalCount"`
+		} `json:"stargazers"`
+	} `json:"node"`
 }
 
-// UserItem = user on userpayload
-type UserItem struct {
-	Login     string `json:"login"`
-	ID        int    `json:"id"`
-	AvatarURL string `json:"avatar_url"`
-	Stars     int    `json:"stars"`
+type UserRepositoryResponse struct {
+	Data struct {
+		User struct {
+			AvatarURL    string `json:"avatarUrl"`
+			Repositories struct {
+				TotalCount int `json:"totalCount"`
+				PageInfo   struct {
+					EndCursor   string `json:"endCursor"`
+					HasNextPage bool   `json:"hasNextPage"`
+				} `json:"pageInfo"`
+				Edges []UserRepositoryEdge `json:"edges"`
+			} `json:"repositories"`
+		} `json:"user"`
+	} `json:"data"`
 }
 
-func genClientQuery() string {
-	clientID := os.Getenv("GH_CLIENT_ID")
-	clientSecret := os.Getenv("GH_CLIENT_SECRET")
-	return fmt.Sprintf("client_id=%s&client_secret=%s", clientID, clientSecret)
+// FetchGhGql = generic fetch for github gql
+func FetchGhGql(query, variables string) (map[string]interface{}, error) {
+	body, err := json.Marshal(map[string]string{
+		"query":     query,
+		"variables": variables,
+	})
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("POST", ghGqlURL, bytes.NewBuffer(body))
+
+	token := os.Getenv("GH_ACCESS_TOKEN")
+
+	req.Header.Set("Authorization", "bearer "+token)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	var data map[string]interface{}
+	err = json.NewDecoder(resp.Body).Decode(&data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 // FetchTopUserSummary = fetch all top user using GQL
 func FetchTopUserSummary() (map[string]interface{}, error) {
-	url := "https://api.github.com/graphql"
 	query := `
 	query topSummary {
 		topPHPDev: search(query: "location:Indonesia language:PHP followers:>=200", type: USER, first: 10) {
@@ -274,138 +315,92 @@ func FetchTopUserSummary() (map[string]interface{}, error) {
 
 	  }
 	`
-	variables := ""
 
-	body, err := json.Marshal(map[string]string{
-		"query":     query,
-		"variables": variables,
-	})
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
-
-	token := os.Getenv("GH_ACCESS_TOKEN")
-
-	req.Header.Set("Authorization", "bearer "+token)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	var data map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&data)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
-
-// FetchTopUsers = fetch top user by our own custom criteria
-func FetchTopUsers(location string, follower string, language string) (*UserPayload, error) {
-	url := fmt.Sprintf("https://api.github.com/search/users?q=location:%s+followers:%s+language:%s+type:user&"+genClientQuery(), location, follower, language)
-
-	resp, err := http.Get(url)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-
-	var data UserPayload
-	err = json.NewDecoder(resp.Body).Decode(&data)
-	// for i := 0; i < len(data.Items); i++ {
-	// 	var stars int
-	// 	repoData, err := FetchAllRepos(data.Items[i].Login)
-	// 	if err != nil {
-	// 		stars = 0
-	// 	} else {
-	// 		stars = repoData.StarCount
-	// 	}
-	// 	data.Items[i].Stars = stars
-	// }
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &data, nil
+	return FetchGhGql(query, "")
 }
 
 // FetchRepo = fetch repo by username
-func FetchRepo(username string, page int) ([]RepoPayload, error) {
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=100&"+genClientQuery(), username, page)
-
-	resp, err := http.Get(url)
-
+func FetchRepo(username string, after *string) (*UserRepositoryResponse, error) {
+	query := `
+	query getUserRepo($username: String!, $after: String) {
+		user(login:$username){
+		  avatarUrl
+		  repositories(after:$after, first:100, ownerAffiliations:OWNER, isFork:false, privacy:PUBLIC){
+			totalCount
+			pageInfo{
+			  endCursor
+			  hasNextPage
+			}
+			edges{
+			  node{
+				name
+				forkCount
+				stargazers {
+				  totalCount
+				}
+			  }
+			}
+		  }
+		}
+	}
+	`
+	variables, _ := json.Marshal(map[string]interface{}{
+		"username": username,
+		"after":    after,
+	})
+	data, err := FetchGhGql(query, string(variables))
 	if err != nil {
 		return nil, err
 	}
-
-	defer resp.Body.Close()
-
-	var data []RepoPayload
-	err = json.NewDecoder(resp.Body).Decode(&data)
-
+	b, _ := json.Marshal(data)
+	var resp UserRepositoryResponse
+	err = json.Unmarshal(b, &resp)
 	if err != nil {
 		return nil, err
 	}
-
-	return data, nil
+	return &resp, nil
 }
 
 // FetchAllRepos = fetch all repos by username
 func FetchAllRepos(username string) (*RepoData, error) {
-	page := 1
 	starCount := 0
 	repoCount := 0
 	forkCount := 0
 	watcherCount := 0
 	subscriberCount := 0
-	langMap := make(map[string]int32)
+	// langMap := make(map[string]int32)
 	avatarUrl := ""
+	var cursor *string
 
 	for {
-		repos, err := FetchRepo(username, page)
+		data, err := FetchRepo(username, cursor)
 		if err != nil {
-			return nil, err
-		}
-		repoCount += len(repos)
-
-		for i := 0; i < len(repos); i++ {
-			if i == 0 {
-				avatarUrl = repos[i].Owner.AvatarURL
-			}
-			starCount += repos[i].StarCount
-			forkCount += repos[i].ForkCount
-			watcherCount += repos[i].WatcherCount
-			subscriberCount += repos[i].SubscriberCount
-			if repos[i].Language != "" {
-				langMap[repos[i].Language]++
-			} else {
-				langMap["Others"]++
-			}
+			break
 		}
 
-		if len(repos) == 0 {
-			return &RepoData{
-				AvatarURL:       avatarUrl,
-				StarCount:       starCount,
-				RepoCount:       repoCount,
-				ForkCount:       forkCount,
-				WatcherCount:    watcherCount,
-				SubscriberCount: subscriberCount,
-				LanguageMap:     langMap,
-			}, nil
+		avatarUrl = data.Data.User.AvatarURL
+		repoCount = data.Data.User.Repositories.TotalCount
+
+		for i := 0; i < len(data.Data.User.Repositories.Edges); i++ {
+			edge := data.Data.User.Repositories.Edges[i]
+			starCount += edge.Node.Stargazers.TotalCount
+			forkCount += edge.Node.ForkCount
 		}
 
-		page++
+		if data.Data.User.Repositories.PageInfo.HasNextPage {
+			*cursor = data.Data.User.Repositories.PageInfo.EndCursor
+		} else {
+			break
+		}
 	}
+
+	return &RepoData{
+		AvatarURL:       avatarUrl,
+		StarCount:       starCount,
+		RepoCount:       repoCount,
+		ForkCount:       forkCount,
+		WatcherCount:    watcherCount,
+		SubscriberCount: subscriberCount,
+		LanguageMap:     nil,
+	}, nil
 }
