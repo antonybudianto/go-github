@@ -9,24 +9,6 @@ import (
 
 const ghGqlURL = "https://api.github.com/graphql"
 
-// RepoPayload = response payload from github
-type RepoPayload struct {
-	StarCount       int       `json:"stargazers_count"`
-	ForkCount       int       `json:"forks_count"`
-	WatcherCount    int       `json:"watchers_count"`
-	SubscriberCount int       `json:"subscribers_count"`
-	NetworkCount    int       `json:"network_count"`
-	FullName        string    `json:"full_name"`
-	Description     string    `json:"description"`
-	Language        string    `json:"language"`
-	Owner           RepoOwner `json:"owner"`
-}
-
-// RepoOwner = owner of the repo
-type RepoOwner struct {
-	AvatarURL string `json:"avatar_url"`
-}
-
 // RepoData = generated summary from raw data
 type RepoData struct {
 	StarCount   int
