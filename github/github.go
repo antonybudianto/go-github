@@ -136,7 +136,7 @@ func FetchAllRepos(username string) (*RepoData, error) {
 		}
 
 		if data.Data.User.Repositories.PageInfo.HasNextPage {
-			*cursor = data.Data.User.Repositories.PageInfo.EndCursor
+			cursor = &data.Data.User.Repositories.PageInfo.EndCursor
 		} else {
 			break
 		}
