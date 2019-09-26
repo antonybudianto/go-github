@@ -25,8 +25,6 @@ func main() {
 	fmt.Printf("%d stars\n", data.StarCount)
 	fmt.Printf("%d repos\n", data.RepoCount)
 	fmt.Printf("%d forks\n", data.ForkCount)
-	fmt.Printf("%d watchers\n", data.WatcherCount)
-	fmt.Printf("%d subscribers\n", data.SubscriberCount)
 	b, _ := json.MarshalIndent(data.LanguageMap, "", "  ")
 	str := string(b)
 	fmt.Printf("LangMap: %v\n", str)

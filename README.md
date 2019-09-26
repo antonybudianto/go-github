@@ -1,5 +1,12 @@
 # Go GitHub
 
+## Requirements
+
+- Go >= 1.11
+- Github Personal Access Token
+  - Get one from https://github.com/settings/tokens
+  - Set the token as env variable `GH_ACCESS_TOKEN`
+
 ## Web mode
 1. Run
 
@@ -18,7 +25,7 @@
 2. Try using GRPC client:
 
     ```sh
-    go run cmd/grpc_client/client.go
+    go run cmd/grpc_client/client.go <github-username>
     ```
 
 3. Misc: Generate proto
@@ -31,7 +38,7 @@
 1. Run
 
    ```sh
-   go run cmd/cli/cli.go <your-username>
+   go run cmd/cli/cli.go <github-username>
    ```
 
 ## Build (for GCP Debian)
