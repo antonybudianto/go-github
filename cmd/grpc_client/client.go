@@ -25,9 +25,9 @@ func main() {
 	cgithub := pb.NewGithubServiceClient(conn)
 
 	// Contact the server and print out its response.
-	var name string
+	var username string
 	if len(os.Args) > 1 {
-		name = os.Args[1]
+		username = os.Args[1]
 	} else {
 		log.Fatalf("Please provide username as argument")
 	}
@@ -35,17 +35,15 @@ func main() {
 	// defer cancel()
 	ctx := context.Background()
 
-	resGithub, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: name})
+	resGithub, err := cgithub.FetchByUsername(ctx, &pb.GithubRequest{Username: username})
 	if err != nil {
 		log.Fatalf("could not fetch: %v", err)
 	}
-	log.Printf("[GithubGrpcClient]: %s (%d stars, %d repos, %d forks, %d watchers, %d subscribers)\n",
+	log.Printf("[GithubGrpcClient]: %s (%d stars, %d repos, %d forks)\n",
 		resGithub.Username,
 		resGithub.Starcount,
 		resGithub.Repocount,
-		resGithub.Forkcount,
-		resGithub.Watchercount,
-		resGithub.Subscribercount)
+		resGithub.Forkcount)
 	b, _ := json.MarshalIndent(resGithub.Langmap, "", "  ")
 	log.Printf("LangMap: %s", string(b))
 }

@@ -18,7 +18,7 @@
 2. Try using GRPC client:
 
     ```sh
-    go run cmd/grpc_client/client.go
+    go run cmd/grpc_client/client.go <github-username>
     ```
 
 3. Misc: Generate proto
@@ -31,7 +31,7 @@
 1. Run
 
    ```sh
-   go run cmd/cli/cli.go <your-username>
+   go run cmd/cli/cli.go <github-username>
    ```
 
 ## Build (for GCP Debian)

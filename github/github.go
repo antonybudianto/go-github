@@ -29,20 +29,19 @@ type RepoOwner struct {
 
 // RepoData = generated summary from raw data
 type RepoData struct {
-	StarCount       int
-	RepoCount       int
-	ForkCount       int
-	WatcherCount    int
-	SubscriberCount int
-	LanguageMap     map[string]int32
-	AvatarURL       string
+	StarCount   int
+	RepoCount   int
+	ForkCount   int
+	LanguageMap map[string]int32
+	AvatarURL   string
 }
 
+// UserRepositoryEdge = user's single repo
 type UserRepositoryEdge struct {
 	Node struct {
 		Name            string `json:"name"`
 		ForkCount       int    `json:"forkCount"`
-		PrimaryLanguage struct {
+		PrimaryLanguage *struct {
 			Name string `json:"name"`
 		} `json:"primaryLanguage"`
 		Stargazers struct {
@@ -51,6 +50,7 @@ type UserRepositoryEdge struct {
 	} `json:"node"`
 }
 
+// UserRepositoryResponse = response from user gql for repo
 type UserRepositoryResponse struct {
 	Data struct {
 		User struct {
@@ -335,6 +335,9 @@ func FetchRepo(username string, after *string) (*UserRepositoryResponse, error) 
 			  node{
 				name
 				forkCount
+				primaryLanguage {
+				  name
+				}
 				stargazers {
 				  totalCount
 				}
@@ -361,30 +364,33 @@ func FetchRepo(username string, after *string) (*UserRepositoryResponse, error) 
 	return &resp, nil
 }
 
-// FetchAllRepos = fetch all repos by username
+// FetchAllRepos = fetch all repos by username and create their summary
 func FetchAllRepos(username string) (*RepoData, error) {
+	avatarURL := ""
 	starCount := 0
 	repoCount := 0
 	forkCount := 0
-	watcherCount := 0
-	subscriberCount := 0
-	// langMap := make(map[string]int32)
-	avatarUrl := ""
+	langMap := make(map[string]int32)
 	var cursor *string
 
 	for {
 		data, err := FetchRepo(username, cursor)
 		if err != nil {
-			break
+			return nil, err
 		}
 
-		avatarUrl = data.Data.User.AvatarURL
+		avatarURL = data.Data.User.AvatarURL
 		repoCount = data.Data.User.Repositories.TotalCount
 
 		for i := 0; i < len(data.Data.User.Repositories.Edges); i++ {
 			edge := data.Data.User.Repositories.Edges[i]
 			starCount += edge.Node.Stargazers.TotalCount
 			forkCount += edge.Node.ForkCount
+			if edge.Node.PrimaryLanguage != nil {
+				langMap[edge.Node.PrimaryLanguage.Name]++
+			} else {
+				langMap["Others"]++
+			}
 		}
 
 		if data.Data.User.Repositories.PageInfo.HasNextPage {
@@ -395,12 +401,10 @@ func FetchAllRepos(username string) (*RepoData, error) {
 	}
 
 	return &RepoData{
-		AvatarURL:       avatarUrl,
-		StarCount:       starCount,
-		RepoCount:       repoCount,
-		ForkCount:       forkCount,
-		WatcherCount:    watcherCount,
-		SubscriberCount: subscriberCount,
-		LanguageMap:     nil,
+		AvatarURL:   avatarURL,
+		StarCount:   starCount,
+		RepoCount:   repoCount,
+		ForkCount:   forkCount,
+		LanguageMap: langMap,
 	}, nil
 }
