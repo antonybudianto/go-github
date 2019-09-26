@@ -1,5 +1,12 @@
 # Go GitHub
 
+## Requirements
+
+- Go >= 1.11
+- Github Personal Access Token
+  - Get one from https://github.com/settings/tokens
+  - Set the token as env variable `GH_ACCESS_TOKEN`
+
 ## Web mode
 1. Run
 
