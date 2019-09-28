@@ -1,5 +1,7 @@
 package github
 
+import "fmt"
+
 // UserQuery = query used when fetching profile
 var UserQuery = `
 query getUserRepo($username: String!, $after: String) {
@@ -28,217 +30,65 @@ query getUserRepo($username: String!, $after: String) {
 }
 `
 
+func generateSummaryQuery(name, location, language, followers string) string {
+	return fmt.Sprintf(`
+	%s: search(query: "location:%s language:%s followers:%s", type: USER, first: 10) {
+		edges {
+			node {
+			... on User {
+				name
+				avatarUrl
+				login
+				bio
+				company
+				location
+				following {
+				totalCount
+				}
+				followers {
+				totalCount
+				}
+			}
+			}
+		}
+	}
+	`, name, location, language, followers)
+}
+
 // SummaryQuery = query used when fetch all summary
-var SummaryQuery = `
+var SummaryQuery = fmt.Sprintf(`
 query topSummary {
-	topPHPDev: search(query: "location:Indonesia language:PHP followers:>=200", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	topJsDev: search(query: "location:Indonesia language:JavaScript followers:>=200", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topJavaDev: search(query: "location:Indonesia language:Java followers:>=200", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topPythonDev: search(query: "location:Indonesia language:Python followers:>=150", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topGoDev: search(query: "location:Indonesia language:Go followers:>=100", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-  
-	topJakartaDev: search(query: "location:Jakarta followers:>=300", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topBandungDev: search(query: "location:Bandung followers:>=200", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topYogyakartaDev: search(query: "location:Yogyakarta followers:>=100", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-	
-	topMalangDev: search(query: "location:Malang followers:>=100", type: USER, first: 10) {
-	  edges {
-		node {
-		  ... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			  totalCount
-			}
-			followers {
-			  totalCount
-			}
-		  }
-		}
-	  }
-	}
-
-	topSurabayaDev: search(query: "location:Surabaya followers:>=100", type: USER, first: 10) {
-	  edges {
-		node {
-		... on User {
-			name
-			avatarUrl
-			login
-			bio
-			company
-			location
-			following {
-			totalCount
-			}
-			followers {
-			totalCount
-			}
-		  }
-		}
-	  }
-	}
-
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
+	%s
   }
-`
+`,
+	generateSummaryQuery("topPHPDev", "Indonesia", "PHP", ">=200"),
+	generateSummaryQuery("topJsDev", "Indonesia", "JavaScript", ">=200"),
+	generateSummaryQuery("topJavaDev", "Indonesia", "Java", ">=200"),
+	generateSummaryQuery("topPythonDev", "Indonesia", "Python", ">=150"),
+	generateSummaryQuery("topHTMLDev", "Indonesia", "HTML", ">=150"),
+	generateSummaryQuery("topGoDev", "Indonesia", "Go", ">=100"),
+	generateSummaryQuery("topRubyDev", "Indonesia", "Ruby", ">=100"),
+	generateSummaryQuery("topShellDev", "Indonesia", "Shell", ">=100"),
+
+	generateSummaryQuery("topJakartaDev", "Jakarta", "*", ">=300"),
+	generateSummaryQuery("topBandungDev", "Bandung", "*", ">=200"),
+	generateSummaryQuery("topYogyakartaDev", "Yogyakarta", "*", ">=100"),
+	generateSummaryQuery("topMalangDev", "Malang", "*", ">=100"),
+	generateSummaryQuery("topBaliDev", "Bali", "*", ">=100"),
+	generateSummaryQuery("topSurabayaDev", "Surabaya", "*", ">=100"),
+	generateSummaryQuery("topSemarangDev", "Semarang", "*", ">=100"),
+)
