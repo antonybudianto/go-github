@@ -17,13 +17,14 @@ const cacheHours = 24
 
 // ProfilePayload for profile response payload
 type ProfilePayload struct {
-	Username      string           `json:"username"`
-	StarCount     int              `json:"star_count"`
-	RepoCount     int              `json:"repo_count"`
-	ForkCount     int              `json:"fork_count"`
-	LanguageCount int              `json:"language_count"`
-	LanguageMap   map[string]int32 `json:"language_map"`
-	AvatarURL     string           `json:"avatar_url"`
+	Username      string                     `json:"username"`
+	StarCount     int                        `json:"star_count"`
+	RepoCount     int                        `json:"repo_count"`
+	ForkCount     int                        `json:"fork_count"`
+	LanguageCount int                        `json:"language_count"`
+	LanguageMap   map[string]int32           `json:"language_map"`
+	AvatarURL     string                     `json:"avatar_url"`
+	TopRepo       *github.UserRepositoryEdge `json:"top_repo"`
 }
 
 func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +54,7 @@ func handleGithubProfile(w http.ResponseWriter, r *http.Request) {
 		ForkCount:     data.ForkCount,
 		LanguageCount: len(data.LanguageMap),
 		LanguageMap:   data.LanguageMap,
+		TopRepo:       data.TopRepo,
 	}
 
 	payload := model.ResponsePayload{

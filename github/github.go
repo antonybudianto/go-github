@@ -14,8 +14,9 @@ type RepoData struct {
 	StarCount   int
 	RepoCount   int
 	ForkCount   int
-	LanguageMap map[string]int32
 	AvatarURL   string
+	LanguageMap map[string]int32
+	TopRepo     *UserRepositoryEdge
 }
 
 // UserRepositoryEdge = user's single repo
@@ -114,6 +115,7 @@ func FetchAllRepos(username string) (*RepoData, error) {
 	forkCount := 0
 	langMap := make(map[string]int32)
 	var cursor *string
+	var bestRepo *UserRepositoryEdge
 
 	for {
 		data, err := FetchRepo(username, cursor)
@@ -128,6 +130,13 @@ func FetchAllRepos(username string) (*RepoData, error) {
 			edge := data.Data.User.Repositories.Edges[i]
 			starCount += edge.Node.Stargazers.TotalCount
 			forkCount += edge.Node.ForkCount
+
+			if bestRepo == nil {
+				bestRepo = &edge
+			} else if edge.Node.Stargazers.TotalCount > bestRepo.Node.Stargazers.TotalCount {
+				bestRepo = &edge
+			}
+
 			if edge.Node.PrimaryLanguage != nil {
 				langMap[edge.Node.PrimaryLanguage.Name]++
 			} else {
@@ -148,5 +157,6 @@ func FetchAllRepos(username string) (*RepoData, error) {
 		RepoCount:   repoCount,
 		ForkCount:   forkCount,
 		LanguageMap: langMap,
+		TopRepo:     bestRepo,
 	}, nil
 }
