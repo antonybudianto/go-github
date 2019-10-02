@@ -73,6 +73,7 @@ query topSummary {
 	%s
 	%s
 	%s
+	%s
   }
 `,
 	generateSummaryQuery("topPHPDev", "Indonesia", "PHP", ">=200"),
@@ -83,6 +84,7 @@ query topSummary {
 	generateSummaryQuery("topGoDev", "Indonesia", "Go", ">=100"),
 	generateSummaryQuery("topRubyDev", "Indonesia", "Ruby", ">=100"),
 	generateSummaryQuery("topShellDev", "Indonesia", "Shell", ">=100"),
+	generateSummaryQuery("topSwiftDev", "Indonesia", "Swift", ">=50"),
 
 	generateSummaryQuery("topJakartaDev", "Jakarta", "*", ">=300"),
 	generateSummaryQuery("topBandungDev", "Bandung", "*", ">=200"),
