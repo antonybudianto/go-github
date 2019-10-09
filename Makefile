@@ -1,4 +1,4 @@
-.PHONY : build-osx build-linux test format
+.PHONY : build-osx build-linux test format gen-proto
 
 format:
 	find . -name "*.go" -not -path "./vendor/*" -not -path ".git/*" | xargs gofmt -s -d -w
