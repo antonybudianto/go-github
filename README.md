@@ -31,7 +31,7 @@
 3. Misc: Generate proto
    
     ```sh
-    protoc --go_out=plugins=grpc:. protos/*.proto
+    make gen-proto
     ```
 
 ## CLI mode
@@ -41,10 +41,16 @@
    go run cmd/cli/cli.go <github-username>
    ```
 
-## Build (for GCP Debian)
+## Build for Operating System specific target
 
+MacOS
 ```sh
-$ env GOOS=linux GOARCH=amd64 go build -o bin/web cmd/web/web.go
+$ make build-osx
+```
+
+Linux
+```sh
+$ make build-linux
 ```
 
 # License
