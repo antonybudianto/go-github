@@ -8,3 +8,6 @@ build-osx:
 
 build-linux: 
 	GOOS=linux GOARCH=amd64 go build -ldflags '-s -w' -o bin/web cmd/web/web.go
+
+gen-proto:
+	protoc --go_out=plugins=grpc:. protos/*.proto
