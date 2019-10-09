@@ -41,7 +41,7 @@
    go run cmd/cli/cli.go <github-username>
    ```
 
-## Build for specific Operating System target
+## Build for Operating System specific target
 
 MacOS
 ```sh
