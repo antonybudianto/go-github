@@ -1,0 +1,10 @@
+.PHONY : build-osx build-linux test format
+
+format:
+	find . -name "*.go" -not -path "./vendor/*" -not -path ".git/*" | xargs gofmt -s -d -w
+
+build-osx:
+	GOOS=darwin GOARCH=amd64 go build -ldflags '-s -w' -o bin/web cmd/web/web.go
+
+build-linux: 
+	GOOS=linux GOARCH=amd64 go build -ldflags '-s -w' -o bin/web cmd/web/web.go
