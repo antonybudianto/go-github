@@ -93,7 +93,7 @@ func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func handleCoba(w http.ResponseWriter, r *http.Request) {
+func handleTest(w http.ResponseWriter, r *http.Request) {
 	data, _ := github.FetchAllRepos("antonybudianto")
 	b, _ := json.Marshal(data)
 	w.Write(b)
@@ -104,7 +104,7 @@ func main() {
 	http.HandleFunc("/gh/profile/", handleGithubProfile)
 
 	// For testing purpose
-	http.HandleFunc("/gh/coba", handleCoba)
+	http.HandleFunc("/gh/test", handleTest)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
