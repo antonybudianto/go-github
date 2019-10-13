@@ -3,8 +3,10 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"gogithub/config"
 	"net/http"
-	"os"
+
+	"github.com/joho/godotenv"
 )
 
 const ghGqlURL = "https://api.github.com/graphql"
@@ -50,6 +52,11 @@ type UserRepositoryResponse struct {
 	} `json:"data"`
 }
 
+func init() {
+	// try load from .env file
+	_ = godotenv.Load()
+}
+
 // FetchGhGql = generic fetch for github gql
 func FetchGhGql(query, variables string) (map[string]interface{}, error) {
 	body, err := json.Marshal(map[string]string{
@@ -61,9 +68,7 @@ func FetchGhGql(query, variables string) (map[string]interface{}, error) {
 	}
 	req, err := http.NewRequest("POST", ghGqlURL, bytes.NewBuffer(body))
 
-	token := os.Getenv("GH_ACCESS_TOKEN")
-
-	req.Header.Set("Authorization", "bearer "+token)
+	req.Header.Set("Authorization", "bearer "+config.GithubAccessToken())
 	client := &http.Client{}
 	resp, err := client.Do(req)
 
