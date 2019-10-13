@@ -165,3 +165,56 @@ func FetchAllRepos(username string) (*RepoData, error) {
 		TopRepo:     bestRepo,
 	}, nil
 }
+
+// SummaryDev - summary dev for star fetch purpose
+type SummaryDev struct {
+	Node struct {
+		Login string `json:"login"`
+	} `json:"node"`
+}
+
+// SummaryData - extract cache for fetching star
+type SummaryData struct {
+	Data struct {
+		TopJakartaDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topJakartaDev"`
+	} `json:"data"`
+}
+
+// DevStar - for single dev star data
+type DevStar struct {
+	Login string `json:"login"`
+	Stars int    `json:"stars"`
+}
+
+// DevStarResponse - for dev star response
+type DevStarResponse struct {
+	Data []DevStar `json:"data"`
+}
+
+// FetchAllStars - fetch all dev star from cache
+func FetchAllStars(cache []byte) (*DevStarResponse, error) {
+	var data SummaryData
+	err := json.Unmarshal(cache, &data)
+	var arr []SummaryDev
+	var devStarList []DevStar
+	if err != nil {
+		return nil, err
+	}
+	arr = append(arr, data.Data.TopJakartaDev.Edges...)
+	for i := 0; i < len(arr); i++ {
+		dev := arr[i]
+		devStar := DevStar{}
+		devData, err := FetchAllRepos(dev.Node.Login)
+		if err != nil {
+
+		}
+		devStar.Stars = devData.StarCount
+		devStar.Login = dev.Node.Login
+		devStarList = append(devStarList, devStar)
+	}
+	return &DevStarResponse{
+		Data: devStarList,
+	}, nil
+}

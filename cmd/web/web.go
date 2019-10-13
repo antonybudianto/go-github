@@ -94,9 +94,24 @@ func handleGithubSummary(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTest(w http.ResponseWriter, r *http.Request) {
-	data, _ := github.FetchAllRepos("antonybudianto")
-	b, _ := json.Marshal(data)
-	w.Write(b)
+	if len(cacheSummary) != 0 {
+		data, err := github.FetchAllStars(cacheSummary)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			payload := model.ResponsePayload{
+				Error: "Error fetch star",
+			}
+			b, _ := json.Marshal(payload)
+			w.WriteHeader(400)
+			w.Write(b)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		b, _ := json.Marshal(data)
+		w.Write(b)
+		return
+	}
+	w.Write([]byte("no cache data"))
 }
 
 func main() {
