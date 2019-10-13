@@ -3,7 +3,9 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"gogithub/config"
+	"gogithub/model"
 	"net/http"
 
 	"github.com/joho/godotenv"
@@ -188,33 +190,51 @@ type DevStar struct {
 	Stars int    `json:"stars"`
 }
 
-// DevStarResponse - for dev star response
-type DevStarResponse struct {
-	Data []DevStar `json:"data"`
+// DevChannel - custom dev channel for async
+type DevChannel struct {
+	Data     *RepoData
+	Username string
+}
+
+func asyncFetchRepos(ch chan DevChannel, username string) {
+	fmt.Println("fetching...", username)
+	devData, err := FetchAllRepos(username)
+	if err != nil {
+		ch <- DevChannel{
+			Username: username,
+		}
+		return
+	}
+	fmt.Println("done...", username)
+	ch <- DevChannel{
+		Data:     devData,
+		Username: username,
+	}
 }
 
 // FetchAllStars - fetch all dev star from cache
-func FetchAllStars(cache []byte) (*DevStarResponse, error) {
+func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
 	var data SummaryData
 	err := json.Unmarshal(cache, &data)
-	var arr []SummaryDev
+	var devList []SummaryDev
 	var devStarList []DevStar
 	if err != nil {
 		return nil, err
 	}
-	arr = append(arr, data.Data.TopJakartaDev.Edges...)
-	for i := 0; i < len(arr); i++ {
-		dev := arr[i]
+	devList = append(devList, data.Data.TopJakartaDev.Edges...)
+	ch := make(chan DevChannel)
+	for i := 0; i < len(devList); i++ {
+		dev := devList[i]
+		go asyncFetchRepos(ch, dev.Node.Login)
+	}
+	for i := 0; i < len(devList); i++ {
 		devStar := DevStar{}
-		devData, err := FetchAllRepos(dev.Node.Login)
-		if err != nil {
-
-		}
-		devStar.Stars = devData.StarCount
-		devStar.Login = dev.Node.Login
+		devData := <-ch
+		devStar.Stars = devData.Data.StarCount
+		devStar.Login = devData.Username
 		devStarList = append(devStarList, devStar)
 	}
-	return &DevStarResponse{
+	return &model.ResponsePayload{
 		Data: devStarList,
 	}, nil
 }
