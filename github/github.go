@@ -181,13 +181,32 @@ type SummaryData struct {
 		TopJakartaDev struct {
 			Edges []SummaryDev `json:"edges"`
 		} `json:"topJakartaDev"`
+		TopBandungDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topBandungDev"`
+		TopYogyakartaDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topYogyakartaDev"`
+		TopMalangDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topMalangDev"`
+		TopBaliDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topBaliDev"`
+		TopSemarangDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topSemarangDev"`
+		TopSurabayaDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topSurabayaDev"`
 	} `json:"data"`
 }
 
 // DevStar - for single dev star data
 type DevStar struct {
-	Login string `json:"login"`
-	Stars int    `json:"stars"`
+	Login     string `json:"login"`
+	AvatarURL string `json:"avatarUrl"`
+	Stars     int    `json:"stars"`
 }
 
 // DevChannel - custom dev channel for async
@@ -197,7 +216,6 @@ type DevChannel struct {
 }
 
 func asyncFetchRepos(ch chan DevChannel, username string) {
-	fmt.Println("fetching...", username)
 	devData, err := FetchAllRepos(username)
 	if err != nil {
 		ch <- DevChannel{
@@ -205,7 +223,6 @@ func asyncFetchRepos(ch chan DevChannel, username string) {
 		}
 		return
 	}
-	fmt.Println("done...", username)
 	ch <- DevChannel{
 		Data:     devData,
 		Username: username,
@@ -216,24 +233,45 @@ func asyncFetchRepos(ch chan DevChannel, username string) {
 func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
 	var data SummaryData
 	err := json.Unmarshal(cache, &data)
-	var devList []SummaryDev
 	var devStarList []DevStar
+	var devList []SummaryDev
+	devMap := make(map[string]SummaryDev)
+
 	if err != nil {
 		return nil, err
 	}
+
 	devList = append(devList, data.Data.TopJakartaDev.Edges...)
-	ch := make(chan DevChannel)
+	devList = append(devList, data.Data.TopBandungDev.Edges...)
+	devList = append(devList, data.Data.TopYogyakartaDev.Edges...)
+	devList = append(devList, data.Data.TopBaliDev.Edges...)
+	devList = append(devList, data.Data.TopSemarangDev.Edges...)
+	devList = append(devList, data.Data.TopSurabayaDev.Edges...)
+
 	for i := 0; i < len(devList); i++ {
 		dev := devList[i]
-		go asyncFetchRepos(ch, dev.Node.Login)
+		devMap[dev.Node.Login] = dev
 	}
-	for i := 0; i < len(devList); i++ {
+
+	ch := make(chan DevChannel)
+	for _, v := range devMap {
+		go asyncFetchRepos(ch, v.Node.Login)
+	}
+
+	fmt.Println(len(devList), len(devMap))
+
+	for range devMap {
 		devStar := DevStar{}
 		devData := <-ch
+		if devData.Data.StarCount < 50 {
+			continue
+		}
 		devStar.Stars = devData.Data.StarCount
 		devStar.Login = devData.Username
+		devStar.AvatarURL = devData.Data.AvatarURL
 		devStarList = append(devStarList, devStar)
 	}
+
 	return &model.ResponsePayload{
 		Data: devStarList,
 	}, nil
