@@ -3,10 +3,10 @@ package github
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gogithub/config"
 	"gogithub/model"
 	"net/http"
+	"sort"
 
 	"github.com/joho/godotenv"
 )
@@ -178,27 +178,9 @@ type SummaryDev struct {
 // SummaryData - extract cache for fetching star
 type SummaryData struct {
 	Data struct {
-		TopJakartaDev struct {
+		TopIndonesiaDev struct {
 			Edges []SummaryDev `json:"edges"`
-		} `json:"topJakartaDev"`
-		TopBandungDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topBandungDev"`
-		TopYogyakartaDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topYogyakartaDev"`
-		TopMalangDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topMalangDev"`
-		TopBaliDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topBaliDev"`
-		TopSemarangDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topSemarangDev"`
-		TopSurabayaDev struct {
-			Edges []SummaryDev `json:"edges"`
-		} `json:"topSurabayaDev"`
+		} `json:"topIndonesiaDev"`
 	} `json:"data"`
 }
 
@@ -229,10 +211,25 @@ func asyncFetchRepos(ch chan DevChannel, username string) {
 	}
 }
 
-// FetchAllStars - fetch all dev star from cache
-func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
+type byDevStar []DevStar
+
+func (s byDevStar) Len() int {
+	return len(s)
+}
+func (s byDevStar) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byDevStar) Less(i, j int) bool {
+	return s[i].Stars > s[j].Stars
+}
+
+// FetchAllStars - fetch top indonesia dev and their repo to count stars
+func FetchAllStars() (*model.ResponsePayload, error) {
+	topData, _ := FetchGhGql(TopIndonesiaQuery, "")
+	topDataBytes, _ := json.Marshal(topData)
+
 	var data SummaryData
-	err := json.Unmarshal(cache, &data)
+	err := json.Unmarshal(topDataBytes, &data)
 	var devStarList []DevStar
 	var devList []SummaryDev
 	devMap := make(map[string]SummaryDev)
@@ -241,12 +238,7 @@ func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
 		return nil, err
 	}
 
-	devList = append(devList, data.Data.TopJakartaDev.Edges...)
-	devList = append(devList, data.Data.TopBandungDev.Edges...)
-	devList = append(devList, data.Data.TopYogyakartaDev.Edges...)
-	devList = append(devList, data.Data.TopBaliDev.Edges...)
-	devList = append(devList, data.Data.TopSemarangDev.Edges...)
-	devList = append(devList, data.Data.TopSurabayaDev.Edges...)
+	devList = append(devList, data.Data.TopIndonesiaDev.Edges...)
 
 	for i := 0; i < len(devList); i++ {
 		dev := devList[i]
@@ -257,8 +249,6 @@ func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
 	for _, v := range devMap {
 		go asyncFetchRepos(ch, v.Node.Login)
 	}
-
-	fmt.Println(len(devList), len(devMap))
 
 	for range devMap {
 		devStar := DevStar{}
@@ -271,6 +261,8 @@ func FetchAllStars(cache []byte) (*model.ResponsePayload, error) {
 		devStar.AvatarURL = devData.Data.AvatarURL
 		devStarList = append(devStarList, devStar)
 	}
+
+	sort.Sort(byDevStar(devStarList))
 
 	return &model.ResponsePayload{
 		Data: devStarList,
