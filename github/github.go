@@ -171,7 +171,13 @@ func FetchAllRepos(username string) (*RepoData, error) {
 // SummaryDev - summary dev for star fetch purpose
 type SummaryDev struct {
 	Node struct {
-		Login string `json:"login"`
+		Login     string `json:"login"`
+		Following struct {
+			TotalCount int `json:"totalCount"`
+		} `json:"following"`
+		Follower struct {
+			TotalCount int `json:"totalCount"`
+		} `json:"followers"`
 	} `json:"node"`
 }
 
@@ -186,18 +192,20 @@ type SummaryData struct {
 
 // DevStar - for single dev star data
 type DevStar struct {
-	Login     string `json:"login"`
-	AvatarURL string `json:"avatarUrl"`
-	Stars     int    `json:"stars"`
+	AvatarURL string      `json:"avatarUrl"`
+	Stars     int         `json:"stars"`
+	Dev       *SummaryDev `json:"dev"`
 }
 
 // DevChannel - custom dev channel for async
 type DevChannel struct {
+	Dev      *SummaryDev
 	Data     *RepoData
 	Username string
 }
 
-func asyncFetchRepos(ch chan DevChannel, username string) {
+func asyncFetchRepos(ch chan DevChannel, dev SummaryDev) {
+	username := dev.Node.Login
 	devData, err := FetchAllRepos(username)
 	if err != nil {
 		ch <- DevChannel{
@@ -206,6 +214,7 @@ func asyncFetchRepos(ch chan DevChannel, username string) {
 		return
 	}
 	ch <- DevChannel{
+		Dev:      &dev,
 		Data:     devData,
 		Username: username,
 	}
@@ -247,7 +256,7 @@ func FetchAllStars() (*model.ResponsePayload, error) {
 
 	ch := make(chan DevChannel)
 	for _, v := range devMap {
-		go asyncFetchRepos(ch, v.Node.Login)
+		go asyncFetchRepos(ch, v)
 	}
 
 	for range devMap {
@@ -256,8 +265,8 @@ func FetchAllStars() (*model.ResponsePayload, error) {
 		if devData.Data.StarCount < 50 {
 			continue
 		}
+		devStar.Dev = devData.Dev
 		devStar.Stars = devData.Data.StarCount
-		devStar.Login = devData.Username
 		devStar.AvatarURL = devData.Data.AvatarURL
 		devStarList = append(devStarList, devStar)
 	}
