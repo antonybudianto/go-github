@@ -2,6 +2,8 @@ package github
 
 import "fmt"
 
+const topSummaryFirst = 10
+
 // UserQuery = query used when fetching profile
 var UserQuery = `
 query getUserRepo($username: String!, $after: String) {
@@ -30,9 +32,9 @@ query getUserRepo($username: String!, $after: String) {
 }
 `
 
-func generateSummaryQuery(name, location, language, followers string) string {
+func generateSummaryQuery(name, location, language, followers string, first int) string {
 	return fmt.Sprintf(`
-	%s: search(query: "location:%s language:%s followers:%s", type: USER, first: 10) {
+	%s: search(query: "location:%s language:%s followers:%s", type: USER, first: %d) {
 		edges {
 			node {
 			... on User {
@@ -52,7 +54,7 @@ func generateSummaryQuery(name, location, language, followers string) string {
 			}
 		}
 	}
-	`, name, location, language, followers)
+	`, name, location, language, followers, first)
 }
 
 // SummaryQuery = query used when fetch all summary
@@ -76,21 +78,30 @@ query topSummary {
 	%s
   }
 `,
-	generateSummaryQuery("topPHPDev", "Indonesia", "PHP", ">=200"),
-	generateSummaryQuery("topJsDev", "Indonesia", "JavaScript", ">=200"),
-	generateSummaryQuery("topJavaDev", "Indonesia", "Java", ">=200"),
-	generateSummaryQuery("topPythonDev", "Indonesia", "Python", ">=150"),
-	generateSummaryQuery("topHTMLDev", "Indonesia", "HTML", ">=150"),
-	generateSummaryQuery("topGoDev", "Indonesia", "Go", ">=100"),
-	generateSummaryQuery("topRubyDev", "Indonesia", "Ruby", ">=100"),
-	generateSummaryQuery("topShellDev", "Indonesia", "Shell", ">=100"),
-	generateSummaryQuery("topSwiftDev", "Indonesia", "Swift", ">=50"),
+	generateSummaryQuery("topPHPDev", "Indonesia", "PHP", ">=200", topSummaryFirst),
+	generateSummaryQuery("topJsDev", "Indonesia", "JavaScript", ">=200", topSummaryFirst),
+	generateSummaryQuery("topJavaDev", "Indonesia", "Java", ">=200", topSummaryFirst),
+	generateSummaryQuery("topPythonDev", "Indonesia", "Python", ">=150", topSummaryFirst),
+	generateSummaryQuery("topHTMLDev", "Indonesia", "HTML", ">=150", topSummaryFirst),
+	generateSummaryQuery("topGoDev", "Indonesia", "Go", ">=100", topSummaryFirst),
+	generateSummaryQuery("topRubyDev", "Indonesia", "Ruby", ">=100", topSummaryFirst),
+	generateSummaryQuery("topShellDev", "Indonesia", "Shell", ">=100", topSummaryFirst),
+	generateSummaryQuery("topSwiftDev", "Indonesia", "Swift", ">=50", topSummaryFirst),
 
-	generateSummaryQuery("topJakartaDev", "Jakarta", "*", ">=300"),
-	generateSummaryQuery("topBandungDev", "Bandung", "*", ">=200"),
-	generateSummaryQuery("topYogyakartaDev", "Yogyakarta", "*", ">=100"),
-	generateSummaryQuery("topMalangDev", "Malang", "*", ">=100"),
-	generateSummaryQuery("topBaliDev", "Bali", "*", ">=100"),
-	generateSummaryQuery("topSurabayaDev", "Surabaya", "*", ">=100"),
-	generateSummaryQuery("topSemarangDev", "Semarang", "*", ">=100"),
+	generateSummaryQuery("topJakartaDev", "Jakarta", "*", ">=300", topSummaryFirst),
+	generateSummaryQuery("topBandungDev", "Bandung", "*", ">=200", topSummaryFirst),
+	generateSummaryQuery("topYogyakartaDev", "Yogyakarta", "*", ">=100", topSummaryFirst),
+	generateSummaryQuery("topMalangDev", "Malang", "*", ">=100", topSummaryFirst),
+	generateSummaryQuery("topBaliDev", "Bali", "*", ">=100", topSummaryFirst),
+	generateSummaryQuery("topSurabayaDev", "Surabaya", "*", ">=100", topSummaryFirst),
+	generateSummaryQuery("topSemarangDev", "Semarang", "*", ">=100", topSummaryFirst),
+)
+
+// TopIndonesiaQuery = query for top overall Indonesia, used for star rating
+var TopIndonesiaQuery = fmt.Sprintf(`
+query topIndonesia {
+	%s
+  }
+`,
+	generateSummaryQuery("topIndonesiaDev", "Indonesia", "*", ">=100", 25),
 )

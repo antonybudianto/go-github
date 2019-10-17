@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"gogithub/config"
+	"gogithub/model"
 	"net/http"
+	"sort"
 
 	"github.com/joho/godotenv"
 )
@@ -163,5 +165,115 @@ func FetchAllRepos(username string) (*RepoData, error) {
 		ForkCount:   forkCount,
 		LanguageMap: langMap,
 		TopRepo:     bestRepo,
+	}, nil
+}
+
+// SummaryDev - summary dev for star fetch purpose
+type SummaryDev struct {
+	Node struct {
+		Login     string `json:"login"`
+		Following struct {
+			TotalCount int `json:"totalCount"`
+		} `json:"following"`
+		Follower struct {
+			TotalCount int `json:"totalCount"`
+		} `json:"followers"`
+	} `json:"node"`
+}
+
+// SummaryData - extract cache for fetching star
+type SummaryData struct {
+	Data struct {
+		TopIndonesiaDev struct {
+			Edges []SummaryDev `json:"edges"`
+		} `json:"topIndonesiaDev"`
+	} `json:"data"`
+}
+
+// DevStar - for single dev star data
+type DevStar struct {
+	AvatarURL string      `json:"avatarUrl"`
+	Stars     int         `json:"stars"`
+	Dev       *SummaryDev `json:"dev"`
+}
+
+// DevChannel - custom dev channel for async
+type DevChannel struct {
+	Dev      *SummaryDev
+	Data     *RepoData
+	Username string
+}
+
+func asyncFetchRepos(ch chan DevChannel, dev SummaryDev) {
+	username := dev.Node.Login
+	devData, err := FetchAllRepos(username)
+	if err != nil {
+		ch <- DevChannel{
+			Username: username,
+		}
+		return
+	}
+	ch <- DevChannel{
+		Dev:      &dev,
+		Data:     devData,
+		Username: username,
+	}
+}
+
+type byDevStar []DevStar
+
+func (s byDevStar) Len() int {
+	return len(s)
+}
+func (s byDevStar) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byDevStar) Less(i, j int) bool {
+	return s[i].Stars > s[j].Stars
+}
+
+// FetchAllStars - fetch top indonesia dev and their repo to count stars
+func FetchAllStars() (*model.ResponsePayload, error) {
+	topData, _ := FetchGhGql(TopIndonesiaQuery, "")
+	topDataBytes, _ := json.Marshal(topData)
+
+	var data SummaryData
+	err := json.Unmarshal(topDataBytes, &data)
+	var devStarList []DevStar
+	var devList []SummaryDev
+	devMap := make(map[string]SummaryDev)
+
+	if err != nil {
+		return nil, err
+	}
+
+	devList = append(devList, data.Data.TopIndonesiaDev.Edges...)
+
+	for i := 0; i < len(devList); i++ {
+		dev := devList[i]
+		devMap[dev.Node.Login] = dev
+	}
+
+	ch := make(chan DevChannel)
+	for _, v := range devMap {
+		go asyncFetchRepos(ch, v)
+	}
+
+	for range devMap {
+		devStar := DevStar{}
+		devData := <-ch
+		if devData.Data.StarCount < 50 {
+			continue
+		}
+		devStar.Dev = devData.Dev
+		devStar.Stars = devData.Data.StarCount
+		devStar.AvatarURL = devData.Data.AvatarURL
+		devStarList = append(devStarList, devStar)
+	}
+
+	sort.Sort(byDevStar(devStarList))
+
+	return &model.ResponsePayload{
+		Data: devStarList,
 	}, nil
 }
