@@ -103,5 +103,5 @@ query topIndonesia {
 	%s
   }
 `,
-	generateSummaryQuery("topIndonesiaDev", "Indonesia", "*", ">=100", 25),
+	generateSummaryQuery("topIndonesiaDev", "Indonesia", "*", ">=100", 100),
 )
