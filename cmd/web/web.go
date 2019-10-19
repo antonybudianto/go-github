@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"gogithub/config"
 	"gogithub/github"
 	"gogithub/model"
 	"log"
@@ -169,7 +170,9 @@ func main() {
 		return
 	}
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	addr := config.WebAddress()
+	log.Println("Web server will be listening at " + addr)
+	if err := http.ListenAndServe(addr, nil); err != nil {
 		panic(err)
 	}
 }

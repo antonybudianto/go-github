@@ -6,8 +6,6 @@ import (
 	"gogithub/config"
 	"net/http"
 	"sort"
-
-	"github.com/joho/godotenv"
 )
 
 const ghGqlURL = "https://api.github.com/graphql"
@@ -51,11 +49,6 @@ type UserRepositoryResponse struct {
 			} `json:"repositories"`
 		} `json:"user"`
 	} `json:"data"`
-}
-
-func init() {
-	// try load from .env file
-	_ = godotenv.Load()
 }
 
 // FetchGhGql = generic fetch for github gql
