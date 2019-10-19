@@ -21,8 +21,8 @@ const (
 	cacheHours        = 24
 	cacheHoursTopStar = 24 * 14
 
-	cacheTypeSummary	string = "summary"
-	cacheTypeTopStar	string = "topstar"
+	cacheTypeSummary string = "summary"
+	cacheTypeTopStar string = "topstar"
 )
 
 // ProfilePayload for profile response payload
@@ -52,6 +52,11 @@ func processMemoryCache(jobType string) {
 			fmt.Println("ERR", err)
 			return
 		}
+		// Prevents caching rate limit error data
+		if data["message"] != nil {
+			fmt.Println("ERR", data["message"])
+			return
+		}
 		b, _ := json.Marshal(data)
 		cacheSummary = b
 		lastCache = time.Now()
@@ -60,10 +65,18 @@ func processMemoryCache(jobType string) {
 		if checkCache(lastCacheTopStar, cacheHoursTopStar, cacheTopStar) {
 			return
 		}
-		data, err := github.FetchAllStars()
+		dataTopStar, err := github.FetchAllStars()
 		if err != nil {
-			fmt.Println("ERR", err)
+			fmt.Println("ERR", "FetchAllStars:", err)
 			return
+		}
+		// Prevents caching empty result
+		if len(dataTopStar) == 0 {
+			fmt.Println("ERR", "FetchAllStars: Empty result")
+			return
+		}
+		data := &model.ResponsePayload{
+			Data: dataTopStar,
 		}
 		b, _ := json.Marshal(data)
 		cacheTopStar = b
@@ -146,7 +159,7 @@ func main() {
 
 	// Initialize chan
 	cacheJobs = make(chan string, 100) // maximum number of jobs that can be queued
-	go checkMemoryCache(cacheJobs) // start coroutine
+	go checkMemoryCache(cacheJobs)     // start coroutine
 
 	// Initialize cache
 	processMemoryCache(cacheTypeSummary)

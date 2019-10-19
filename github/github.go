@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"gogithub/config"
-	"gogithub/model"
 	"net/http"
 	"sort"
 
@@ -233,12 +232,17 @@ func (s byDevStar) Less(i, j int) bool {
 }
 
 // FetchAllStars - fetch top indonesia dev and their repo to count stars
-func FetchAllStars() (*model.ResponsePayload, error) {
-	topData, _ := FetchGhGql(TopIndonesiaQuery, "")
+func FetchAllStars() ([]DevStar, error) {
+	topData, err := FetchGhGql(TopIndonesiaQuery, "")
+
+	if err != nil {
+		return nil, err
+	}
+
 	topDataBytes, _ := json.Marshal(topData)
 
 	var data SummaryData
-	err := json.Unmarshal(topDataBytes, &data)
+	err = json.Unmarshal(topDataBytes, &data)
 	var devStarList []DevStar
 	var devList []SummaryDev
 	devMap := make(map[string]SummaryDev)
@@ -273,7 +277,5 @@ func FetchAllStars() (*model.ResponsePayload, error) {
 
 	sort.Sort(byDevStar(devStarList))
 
-	return &model.ResponsePayload{
-		Data: devStarList,
-	}, nil
+	return devStarList, nil
 }
