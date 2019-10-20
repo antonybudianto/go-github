@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	"gogithub/config"
 	"gogithub/github"
 	pb "gogithub/protos"
 
@@ -11,15 +12,13 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-const (
-	port = ":50051"
-)
-
 func main() {
-	lis, err := net.Listen("tcp", port)
+	addr := config.GrpcServerAddress()
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
+	log.Println("gRPC server listening at " + addr)
 	s := grpc.NewServer()
 	reflection.Register(s)
 	pb.RegisterGithubServiceServer(s, &github.GrpcServer{})

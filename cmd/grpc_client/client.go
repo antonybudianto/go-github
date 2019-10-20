@@ -6,18 +6,16 @@ import (
 	"log"
 	"os"
 
+	"gogithub/config"
 	pb "gogithub/protos"
 
 	"google.golang.org/grpc"
 )
 
-const (
-	address = "localhost:50051"
-)
-
 func main() {
 	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	addr := config.GrpcClientAddress()
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
