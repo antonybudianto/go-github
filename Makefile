@@ -11,3 +11,6 @@ build-linux:
 
 gen-proto:
 	protoc --go_out=plugins=grpc:. protos/*.proto
+
+update-bin:
+	cp ../web ./bin/ && chmod +x ./bin/web
