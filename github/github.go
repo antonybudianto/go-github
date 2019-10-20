@@ -164,6 +164,7 @@ func FetchAllRepos(username string) (*RepoData, error) {
 type SummaryDev struct {
 	Node struct {
 		Login     string `json:"login"`
+		Name      string `json:"name"`
 		Following struct {
 			TotalCount int `json:"totalCount"`
 		} `json:"following"`
